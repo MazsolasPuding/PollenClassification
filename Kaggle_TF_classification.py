@@ -35,8 +35,8 @@ def set_plt_defaults():
     plt.rc('image', cmap='magma')
     warnings.filterwarnings("ignore") # to clean up output cells
 
-def get_classes(PATH):
-    names = [name.replace(' ', '_').split('_')[0] for name in os.listdir(PATH)]
+def get_classes(input_psth):
+    names = [name.replace(' ', '_').split('_')[0] for name in os.listdir(input_psth)]
     classes = Counter(names)  #returns dictionary
     print(f"Total number of images is {len(names)}")
     return classes
@@ -49,9 +49,9 @@ def show_classe_distribution(classes):
     plt.show()
 
 
-def get_path_class(PATH, classes):
-    return {key: [os.path.join(PATH, name)
-                  for name in os.listdir(PATH)
+def get_path_class(input_psth, classes):
+    return {key: [os.path.join(input_psth, name)
+                  for name in os.listdir(input_psth)
                   if name.replace(' ', '_').split('_')[0] == key]
                 for key in classes.keys()}
 
@@ -77,9 +77,9 @@ def show_images(path_class):
     plt.show()
 
 
-def show_scatter_plot(PATH):
+def show_scatter_plot(input_psth):
     """Show scatter plot of image sizes."""
-    size = [cv2.imread(os.path.join(PATH, name)).shape for name in os.listdir(PATH)]
+    size = [cv2.imread(os.path.join(input_psth, name)).shape for name in os.listdir(input_psth)]
     x, y, _ = zip(*size)
     fig = plt.figure(figsize=(12, 10))
 
@@ -101,11 +101,11 @@ def process_img(img, size = (128,128)):
     return img
 
 
-def X_Y_split(PATH):
+def X_Y_split(input_psth):
     """Split images into X and labels into Y"""
     X, Y = [], []
-    for name  in os.listdir(PATH):
-        img = cv2.imread(os.path.join(PATH, name))
+    for name  in os.listdir(input_psth):
+        img = cv2.imread(os.path.join(input_psth, name))
         if img is None:  # check if image is correctly loaded
             print(f"Image {name} could not be loaded.")
             continue
@@ -171,11 +171,10 @@ def create_datagenerator(X_train):
     return datagener
 
 
-def fit_model(model, datagener, X_train, Y_train, X_test, Y_test):
+def fit_model(model, model_path, datagener, X_train, Y_train, X_test, Y_test):
     batch_size = 4
     epochs = 500
 
-    model_path = 'cnn.hdf5'
     callbecks = [callbacks.EarlyStopping(monitor ='val_loss', patience = 20), 
                 callbacks.ModelCheckpoint(filepath = model_path, save_best_only = True)]
 
@@ -233,25 +232,27 @@ def plot_metrics(history):
 
 def main():
     parser = argparse.ArgumentParser(description='Pollen Classification')
-    parser.add_argument('--path', type=str, required=True, help='Path to the Kaggle dataset')
+    parser.add_argument('--input', type=str, required=True, help='Path to the Kaggle dataset')
+    parser.add_argument('--model', type=str, required=True, help='Path for the model to be saved')
     args = parser.parse_args()
-    PATH = args.path
+    input_psth = args.input
+    model_path = args.model
 
     set_seed()
     set_plt_defaults()
 
-    classes = get_classes(PATH)
+    classes = get_classes(input_psth)
     show_classe_distribution(classes)
-    path_class = get_path_class(PATH, classes)
+    path_class = get_path_class(input_psth, classes)
     show_images(path_class)
-    show_scatter_plot(PATH)
+    show_scatter_plot(input_psth)
 
-    X, Y = X_Y_split(PATH)
+    X, Y = X_Y_split(input_psth)
     X_train, X_test, Y_train, Y_test, le = split_train_valid(X, Y)
     model = build_model(X_train)
     compile_model(model)
     datagener = create_datagenerator(X_train)
-    history = fit_model(model, datagener, X_train, Y_train, X_test, Y_test)
+    history = fit_model(model, model_path, datagener, X_train, Y_train, X_test, Y_test)
 
     plot_confusion_matrix(model, X_train, Y_train, le, "Train set")
     plot_confusion_matrix(model, X_test,  Y_test, le,  "Test set")
