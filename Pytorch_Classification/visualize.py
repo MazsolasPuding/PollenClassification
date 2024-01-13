@@ -16,20 +16,22 @@ def plot_transformed_images(image_paths, transform, n=3, seed=42):
     """
     random.seed(seed)
     random_image_paths = random.sample(image_paths, k=n)
-    for image_path in random_image_paths:
+
+    fig, ax = plt.subplots(3, 2)
+    for ind, image_path in enumerate(random_image_paths):
         with Image.open(image_path) as f:
-            fig, ax = plt.subplots(1, 2)
-            ax[0].imshow(f) 
-            ax[0].set_title(f"Original \nSize: {f.size}")
-            ax[0].axis("off")
+            ax[ind][0].imshow(f) 
+            ax[ind][0].set_title(f"Original \nSize: {f.size}")
+            ax[ind][0].axis("off")
 
             # Transform and plot image
             # Note: permute() will change shape of image to suit matplotlib 
             # (PyTorch default is [C, H, W] but Matplotlib is [H, W, C])
             transformed_image = transform(f).permute(1, 2, 0) 
-            ax[1].imshow(transformed_image) 
-            ax[1].set_title(f"Transformed \nSize: {transformed_image.shape}")
-            ax[1].axis("off")
+            ax[ind][1].imshow(transformed_image) 
+            ax[ind][1].set_title(f"Transformed \nSize: {transformed_image.shape}")
+            ax[ind][1].axis("off")
 
-            fig.suptitle(f"Class: {image_path.parent.stem}", fontsize=16)
+    fig.suptitle(f"Show Transformation step", fontsize=16)
+    plt.subplots_adjust(top=0.8, bottom=0.1, hspace=0.6)
     plt.show()

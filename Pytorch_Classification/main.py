@@ -39,9 +39,9 @@ data_transform = transforms.Compose([
 ])
 
 
-# plot_transformed_images(list(data_path.glob("*/*.jpg")),
-#                         transform=data_transform, 
-#                         n=3)
+plot_transformed_images(list(data_path.glob("*/*.jpg")),
+                        transform=data_transform, 
+                        n=3)
 
 # Load the dataset
 dataset = datasets.ImageFolder(root=data_path, transform=data_transform)
