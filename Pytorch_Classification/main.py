@@ -1,3 +1,5 @@
+import os
+
 import torch
 from torch import nn
 from torch.utils.data import DataLoader
@@ -8,60 +10,69 @@ from pathlib import Path
 from sklearn.model_selection import train_test_split
 
 from visualize import *
+from create_custom_dataset import *
 
-#####################
-# Environment Setup #
-#####################
+if __name__ == "__main__":
+    #####################
+    # Environment Setup #
+    #####################
 
-print(f"PyTorch version: {torch.__version__}\n"
-      f"torchvision version: {torchvision.__version__}")
+    print(f"PyTorch version: {torch.__version__}\n"
+        f"torchvision version: {torchvision.__version__}")
 
-if torch.cuda.is_available():
-    device = "cuda"
-elif torch.backends.mps.is_available():
-    device = "mps"
-else:
-    device = "cpu"
-print(f"Using device: {device}")
+    if torch.cuda.is_available():
+        device = "cuda"
+    elif torch.backends.mps.is_available():
+        device = "mps"
+    else:
+        device = "cpu"
+    print(f"Using device: {device}")
 
-torch.manual_seed(42)
+    torch.manual_seed(42)
 
-#####################
-#    Data Setup     #
-#####################
+    #####################
+    #    Data Setup     #
+    #####################
 
-data_path = Path("./data/KaggleDB_Structured")
+    data_path = Path("./data/KaggleDB")
 
-data_transform = transforms.Compose([
-    transforms.Resize(size=(64, 64)),
-    transforms.RandomHorizontalFlip(p=0.5),
-    transforms.ToTensor()
-])
+    data_transform = transforms.Compose([
+        transforms.Resize(size=(64, 64)),
+        # transforms.RandomHorizontalFlip(p=0.5),
+        transforms.ToTensor()
+    ])
 
 
-plot_transformed_images(list(data_path.glob("*/*.jpg")),
-                        transform=data_transform, 
-                        n=3)
+    plot_transformed_images(list(data_path.glob("*.jpg")),
+                            transform=data_transform, 
+                            n=3)
 
-# Load the dataset
-dataset = datasets.ImageFolder(root=data_path, transform=data_transform)
-classes = dataset.classes
-class_dict = dataset.class_to_idx
-print(class_dict)
+    # Load the dataset
+    dataset = PollenDataset(root_dir=data_path, transform=data_transform)
+    classes = dataset.classes
+    class_dict = dataset.class_to_idx
+    print(class_dict)
+    display_random_images(dataset=dataset, classes=classes, n=5)
 
-# Convert the dataset to a list of samples
-samples = list(dataset)
-# Split the samples into training and testing sets
-train_samples, test_samples = train_test_split(samples, test_size=0.2, random_state=42)
+    # Convert the dataset to a list of samples
+    samples = list(dataset)
+    # Split the samples into training and testing sets
+    train_samples, test_samples = train_test_split(samples, test_size=0.2, random_state=42)
 
-# Now you can create DataLoaders from these samples
-train_loader = torch.utils.data.DataLoader(dataset=train_samples,
-                                           batch_size=32,
-                                           num_workers=1,
-                                           shuffle=True)
-test_loader = torch.utils.data.DataLoader(dataset=test_samples,
-                                          batch_size=32,
-                                          num_workers=1,
-                                          shuffle=False)
+    # Create Data Loaders
+    train_loader = torch.utils.data.DataLoader(dataset=train_samples,
+                                            batch_size=32,
+                                            num_workers=1,  #os.cpu_count(),
+                                            shuffle=True)
+    test_loader = torch.utils.data.DataLoader(dataset=test_samples,
+                                            batch_size=32,
+                                            num_workers=1, #os.cpu_count(),
+                                            shuffle=False)
 
-print(train_loader, test_loader)
+    print(train_loader, test_loader)
+
+
+    # Test DataLoader, Get image and label from custom DataLoader
+    img_custom, label_custom = next(iter(train_loader))
+    print(f"Image shape: {img_custom.shape} -> [batch_size, color_channels, height, width]")
+    print(f"Label shape: {label_custom.shape}")
