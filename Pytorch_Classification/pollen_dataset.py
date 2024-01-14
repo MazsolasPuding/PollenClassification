@@ -13,27 +13,35 @@ from torchvision import transforms
 from typing import Tuple, Dict, List, Set
 from pathlib import Path
 
+
+
 class PollenDataset(Dataset):
     """Pollen dataset."""
 
     def __init__(self, 
-                 root_dir: Path,
+                 sample_set: List[Path],
+                 classes: List[str] = None,
+                 root_dir: Path = None,
                  transform: transforms.Compose = None) -> None:
         """
         Args:
-            root_dir (str): Directory with all the images.
+            # root_dir (str): Directory with all the images.
             transform (torchvision.transforms.Compose, optional): Optional transform to be applied
                 on a sample.
         """
-        self.root_dir = root_dir
+        self.sample_set = sample_set
+        self.classes = list(set(classes)) if classes else self._get_classes(root_dir)
         self.transform = transform
-        self.classes = self._get_classes()
         self.class_to_idx = {cls: idx for idx, cls in enumerate(self.classes)}
         self.samples = self._get_samples()
 
-    def _get_classes(self) -> Set[str]:
-        pictures = [item.name for item in self.root_dir.iterdir()]  # Some pictures have spaces instead of underscores
-        return list(set([pic.replace(' ', '_').split('_')[0] for pic in pictures]))
+    @staticmethod
+    def _get_classes(path, full_range: bool = False) -> Set[str]:
+        pictures = [item.name for item in path.iterdir()]  # Some pictures have spaces instead of underscores
+        classes = [pic.replace(' ', '_').split('_')[0] for pic in pictures]
+        if full_range:
+            return classes
+        return list(set(classes))
 
     def __len__(self) -> int:
         return len(self.samples)
@@ -58,11 +66,11 @@ class PollenDataset(Dataset):
             List[Tuple[str, int]]: List of samples from the dataset.
         """
         samples = []
-        for pic in self.root_dir.iterdir():
+        for pic in self.sample_set:
             cls = pic.name.replace(' ', '_').split('_')[0]
             samples.append([pic, self.class_to_idx[cls]])
         return samples
 
 if __name__ == "__main__":
-    p = PollenDataset(root_dir="./data/KaggleDB")
-    pprint(Image.open(p.samples[0][0]))
+    p = PollenDataset(sample_set=list(Path("./data/KaggleDB").glob("*.jpg")), root_dir=Path("./data/KaggleDB"))
+    pprint(next(iter(p)))
