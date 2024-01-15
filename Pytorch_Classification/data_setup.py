@@ -36,7 +36,7 @@ class PollenDataset(Dataset):
         self.samples = self._get_samples()
 
     @staticmethod
-    def _get_classes(path, full_range: bool = False) -> Set[str]:
+    def _get_classes(path: Path, full_range: bool = False) -> Set[str]:
         pictures = [item.name for item in path.iterdir()]  # Some pictures have spaces instead of underscores
         classes = [pic.replace(' ', '_').split('_')[0] for pic in pictures]
         if full_range:

@@ -35,9 +35,9 @@ def set_plt_defaults():
     plt.rc('image', cmap='magma')
     warnings.filterwarnings("ignore") # to clean up output cells
 
-def get_classes(input_psth):
-    names = [name.replace(' ', '_').split('_')[0] for name in os.listdir(input_psth)]
-    classes = Counter(names)  #returns dictionary
+def get_classes(input_path):
+    names = [name.replace(' ', '_').split('_')[0] for name in os.listdir(input_path)]
+    classes = Counter(names)  #returns dictionary with class names and their counts
     print(f"Total number of images is {len(names)}")
     return classes
 
@@ -49,9 +49,9 @@ def show_classe_distribution(classes):
     plt.show()
 
 
-def get_path_class(input_psth, classes):
-    return {key: [os.path.join(input_psth, name)
-                  for name in os.listdir(input_psth)
+def get_path_class(input_path, classes):
+    return {key: [os.path.join(input_path, name)
+                  for name in os.listdir(input_path)
                   if name.replace(' ', '_').split('_')[0] == key]
                 for key in classes.keys()}
 
@@ -77,9 +77,9 @@ def show_images(path_class):
     plt.show()
 
 
-def show_scatter_plot(input_psth):
+def show_scatter_plot(input_path):
     """Show scatter plot of image sizes."""
-    size = [cv2.imread(os.path.join(input_psth, name)).shape for name in os.listdir(input_psth)]
+    size = [cv2.imread(os.path.join(input_path, name)).shape for name in os.listdir(input_path)]
     x, y, _ = zip(*size)
     fig = plt.figure(figsize=(12, 10))
 
@@ -101,11 +101,11 @@ def process_img(img, size = (128,128)):
     return img
 
 
-def X_Y_split(input_psth):
+def X_Y_split(input_path):
     """Split images into X and labels into Y"""
     X, Y = [], []
-    for name  in os.listdir(input_psth):
-        img = cv2.imread(os.path.join(input_psth, name))
+    for name  in os.listdir(input_path):
+        img = cv2.imread(os.path.join(input_path, name))
         if img is None:  # check if image is correctly loaded
             print(f"Image {name} could not be loaded.")
             continue
@@ -235,19 +235,19 @@ def main():
     parser.add_argument('--input', type=str, required=True, help='Path to the Kaggle dataset')
     parser.add_argument('--model', type=str, required=True, help='Path for the model to be saved')
     args = parser.parse_args()
-    input_psth = args.input
+    input_path = args.input
     model_path = args.model
 
     set_seed()
     set_plt_defaults()
 
-    classes = get_classes(input_psth)
+    classes = get_classes(input_path)
     show_classe_distribution(classes)
-    path_class = get_path_class(input_psth, classes)
+    path_class = get_path_class(input_path, classes)
     show_images(path_class)
-    show_scatter_plot(input_psth)
+    show_scatter_plot(input_path)
 
-    X, Y = X_Y_split(input_psth)
+    X, Y = X_Y_split(input_path)
     X_train, X_test, Y_train, Y_test, le = split_train_valid(X, Y)
     model = build_model(X_train)
     compile_model(model)
@@ -261,3 +261,8 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# python Kaggle_TF_classification.py --input "data/KaggleDB" --model "models/TensorFlow.hdf5"
+# Epoch 150/500
+# 141/141 [==============================] - 4s 26ms/step - loss: 0.3067 - accuracy: 0.8865 - val_loss: 0.1923 - val_accuracy: 0.9202
+# Test set accuracy: 0.8274336457252502
