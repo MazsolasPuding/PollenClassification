@@ -101,7 +101,12 @@ def print_model_info(model: torch.nn.Module,
     # Print Basic info
     if info in ["Basic", "Both"]: print(model)
     # Print Complete Modell Summary
-    if info in ["Complete", "Both"]: print(torchinfo.summary(model, input_size=[1, 3, 64, 64]))
+    if info in ["Complete", "Both"]: print(torchinfo.summary(model=model, 
+                                                             input_size=(32, 3, 224, 224), # make sure this is "input_size", not "input_shape"
+                                                             # col_names=["input_size"], # uncomment for smaller output
+                                                             col_names=["input_size", "output_size", "num_params", "trainable"],
+                                                             col_width=20,
+                                                             row_settings=["var_names"]))
 
 def plot_transformed_images(image_paths, transform, n=3, seed=42):
     """Plots a series of random images from image_paths.

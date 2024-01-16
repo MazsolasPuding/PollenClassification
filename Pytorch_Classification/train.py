@@ -61,6 +61,9 @@ def main(args: argparse.Namespace):
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # Normalize the images with the same mean and standard deviation as in training
     ])
 
+    weights = torchvision.models.EfficientNet_B0_Weights.DEFAULT
+    auto_transforms = weights.transforms()
+
     if args.plot_graphs:
         plot_transformed_images(list(data_path.glob("*.jpg")),
                             transform=train_data_transform, 
@@ -76,8 +79,8 @@ def main(args: argparse.Namespace):
     train_samples, test_samples = train_test_split(samples, test_size=0.2, random_state=42, stratify=labels)
 
 
-    train_dataset = PollenDataset(sample_set=train_samples, classes=labels, transform=train_data_transform)
-    test_dataset = PollenDataset(sample_set=test_samples, classes=labels, transform=test_data_transform)
+    train_dataset = PollenDataset(sample_set=train_samples, classes=labels, transform=auto_transforms)
+    test_dataset = PollenDataset(sample_set=test_samples, classes=labels, transform=auto_transforms)
     classes = train_dataset.classes
     class_dict = train_dataset.class_to_idx
     if args.print_info:
@@ -148,16 +151,16 @@ def main(args: argparse.Namespace):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train Pytorch Models on Pollen Dataset.")
     parser.add_argument("--data_path", type=str, default="./data/KaggleDB", help="Path to the data directory.")
-    parser.add_argument("--model", type=str, default="Transfer", help="Model to train.")
-    parser.add_argument("--batch_size", type=int, default=4, help="Batch size.")
+    parser.add_argument("--model", type=str, default="EfficientNetB0", help="Model to train.")
+    parser.add_argument("--batch_size", type=int, default=32, help="Batch size.")
     parser.add_argument("--num_workers", type=int, default=0, help="Number of workers.")
-    parser.add_argument("--num_epochs", type=int, default=26, help="Number of epochs.")
-    parser.add_argument("--lr", type=float, default=0.0001, help="Learning rate.")
+    parser.add_argument("--num_epochs", type=int, default=5, help="Number of epochs.")
+    parser.add_argument("--lr", type=float, default=0.001, help="Learning rate.")
     parser.add_argument("--seed", type=int, default=42, help="Random seed.")
     # parser.add_argument("--device", type=str, default="cpu", help="Device to use.")
-    parser.add_argument("--save_model", type=bool, default=True, help="Save model.")
+    parser.add_argument("--save_model", type=bool, default=False, help="Save model.")
     parser.add_argument("--save_model_path", type=str, default="./models", help="Path to save model.")
-    parser.add_argument("--save_model_name", type=str, default="Transfer.pt", help="Name of model to save.")
+    parser.add_argument("--save_model_name", type=str, default="EfficientNetB0.pt", help="Name of model to save.")
     # parser.add_argument("print_every", type=int, default=1, help="Print every n epochs.")
     parser.add_argument("--print_info", type=bool, default=False, help="Print model info.")
     parser.add_argument("--plot_graphs", type=bool, default=False, help="Plot graphs.")

@@ -3,7 +3,8 @@ from torchvision import models
 
 class ModelHandler():
     def __init__(self) -> None:
-        self.models_dict = {"Transfer":TransferLearningModel,
+        self.models_dict = {"EfficientNetB0": EfficientNetB0,
+                            "Transfer":TransferLearningModel,
                             "TinyVGG": TinyVGG,
                             "TensorFlowModel": TensorFlowModel}
 
@@ -11,6 +12,25 @@ class ModelHandler():
                   model_name: str = "TinyVGG",
                   **kwargs) -> nn.Module:
         return self.models_dict[model_name](**kwargs)
+
+class EfficientNetB0(nn.Module):
+    def __init__(self, num_classes: int = 23) -> None:
+        super(EfficientNetB0, self).__init__()
+        self.weights = models.EfficientNet_B0_Weights.DEFAULT # .DEFAULT = best available weights 
+        self.model = models.efficientnet_b0(weights=self.weights)
+
+        # Freeze all base layers in the "features" section of the model (the feature extractor) by setting requires_grad=False
+        for param in self.model.features.parameters():
+            param.requires_grad = False
+
+        # Recreate the classifier layer and seed it to the target device
+        self.model.classifier = nn.Sequential(nn.Dropout(p=0.2, inplace=True), 
+                                            nn.Linear(in_features=1280, 
+                                            out_features=num_classes, # same number of output units as our number of classes
+                                            bias=True))
+        
+    def forward(self, x):
+        return self.model(x)
 
 
 class TransferLearningModel(nn.Module):
