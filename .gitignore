@@ -160,6 +160,7 @@ cython_debug/
 #.idea/
 
 # Own Additional
-KaggleDB/*
+KaggleDB/
+data/
 *.hdf5
 *.pt
