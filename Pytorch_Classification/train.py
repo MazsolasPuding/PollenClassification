@@ -105,10 +105,10 @@ def main(args: argparse.Namespace):
 
     model_handler = ModelHandler()
     model = model_handler.get_model(model_name=args.model,
-                                    num_classes=len(train_dataset.classes))
-                                    # input_shape=3,
-                                    # hidden_units=10,
-                                    # output_shape=len(train_dataset.classes))
+                                    # num_classes=len(train_dataset.classes))
+                                    input_shape=3,
+                                    hidden_units=10,
+                                    output_shape=len(train_dataset.classes))
     model.to(device)
 
     #############################
@@ -151,7 +151,7 @@ def main(args: argparse.Namespace):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train Pytorch Models on Pollen Dataset.")
     parser.add_argument("--data_path", type=str, default="./data/KaggleDB", help="Path to the data directory.")
-    parser.add_argument("--model", type=str, default="EfficientNetB0", help="Model to train.")
+    parser.add_argument("--model", type=str, default="TensorFlowModel", help="Model to train.")
     parser.add_argument("--batch_size", type=int, default=32, help="Batch size.")
     parser.add_argument("--num_workers", type=int, default=0, help="Number of workers.")
     parser.add_argument("--num_epochs", type=int, default=5, help="Number of epochs.")
@@ -160,7 +160,7 @@ if __name__ == "__main__":
     # parser.add_argument("--device", type=str, default="cpu", help="Device to use.")
     parser.add_argument("--save_model", type=bool, default=False, help="Save model.")
     parser.add_argument("--save_model_path", type=str, default="./models", help="Path to save model.")
-    parser.add_argument("--save_model_name", type=str, default="EfficientNetB0.pt", help="Name of model to save.")
+    parser.add_argument("--save_model_name", type=str, default="TensorFlowModel.pt", help="Name of model to save.")
     # parser.add_argument("print_every", type=int, default=1, help="Print every n epochs.")
     parser.add_argument("--print_info", type=bool, default=False, help="Print model info.")
     parser.add_argument("--plot_graphs", type=bool, default=False, help="Plot graphs.")
